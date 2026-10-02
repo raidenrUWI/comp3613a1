@@ -1,0 +1,44 @@
+{% extends "authenticated-base.html" %}
+{% block title %}Profile{% endblock %}
+
+{% block subpage_content %}
+<main class="container-fluid py-2">
+  <header class="mb-4">
+    <p class="opportunity-kicker mb-1">STUDENT AWARDS / ACCOUNT</p>
+    <h1 class="h3 mb-0">Profile</h1>
+  </header>
+
+  {% if student %}
+  <section class="mb-4" aria-labelledby="student-details-heading">
+    <h2 class="h5 mb-3" id="student-details-heading">Student details</h2>
+    <dl class="row mb-0">
+      <dt class="col-sm-3">Name</dt>
+      <dd class="col-sm-9">{{ student.name }}</dd>
+      <dt class="col-sm-3">Student ID</dt>
+      <dd class="col-sm-9">{{ student.student_id }}</dd>
+      <dt class="col-sm-3">Class</dt>
+      <dd class="col-sm-9">{{ student.class_name }}</dd>
+    </dl>
+
+    <form method="post" action="{{ url_for('update_student_class') }}" class="mt-3" style="max-width: 28rem;">
+      <label class="form-label" for="class-name">Change class</label>
+      <div class="input-group">
+        <input class="form-control" id="class-name" name="class_name" value="{{ student.class_name }}" maxlength="100" required>
+        <button class="btn btn-primary" type="submit">Update</button>
+      </div>
+    </form>
+  </section>
+
+  {% else %}
+  <section aria-labelledby="admin-details-heading">
+    <h2 class="h5 mb-3" id="admin-details-heading">Admin details</h2>
+    <dl class="row mb-0">
+      <dt class="col-sm-3">Name</dt>
+      <dd class="col-sm-9">{{ admin.name }}</dd>
+      <dt class="col-sm-3">Admin ID</dt>
+      <dd class="col-sm-9">{{ admin.admin_id }}</dd>
+    </dl>
+  </section>
+  {% endif %}
+</main>
+{% endblock %}

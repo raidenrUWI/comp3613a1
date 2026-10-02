@@ -1,0 +1,125 @@
+{% extends "authenticated-base.html" %}
+{% block title %}Progress{% endblock %}
+
+{% block subpage_content %}
+<main class="progress-page">
+  <header class="progress-header">
+    <div>
+      <p class="progress-kicker">STUDENT AWARDS / ROADMAP</p>
+      <h1>Progress</h1>
+      <p>Build verified volunteer hours and reach each milestone.</p>
+    </div>
+    <div class="progress-total">
+      <span>Total verified hours</span>
+      <strong>{{ progress.current_hours | int }}h {{ ((progress.current_hours % 1) * 60) | int }}m</strong>
+    </div>
+  </header>
+
+  <section class="progress-next" aria-labelledby="next-milestone-heading">
+    {% if progress.next_milestone %}
+    <div class="progress-next-copy">
+      <div>
+        <p class="progress-kicker">NEXT MILESTONE</p>
+        <h2 id="next-milestone-heading">{{ progress.next_milestone.name }}</h2>
+      </div>
+      <p><strong>{{ progress.hours_to_next | int }}h {{ ((progress.hours_to_next % 1) * 60) | int }}m</strong> to go</p>
+    </div>
+    <div class="progress-track" role="progressbar" aria-label="Progress to {{ progress.next_milestone.name }}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ progress.next_milestone.progress_percent }}">
+      <span style="width: {{ progress.next_milestone.progress_percent }}%"></span>
+    </div>
+    <p class="progress-target">{{ progress.current_hours | int }}h {{ ((progress.current_hours % 1) * 60) | int }}m completed of {{ progress.next_milestone.target_hours | int }}h</p>
+    {% else %}
+    <p class="progress-kicker">ROADMAP COMPLETE</p>
+    <h2 id="next-milestone-heading">All milestones achieved</h2>
+    <p class="progress-target mb-0">You have reached every award milestone.</p>
+    {% endif %}
+  </section>
+
+  <section class="milestone-roadmap" aria-label="Award milestones">
+    {% for milestone in progress.milestones %}
+    <article class="milestone-row {{ 'achieved' if milestone.achieved else 'current' if milestone.current else 'upcoming' }}">
+      <div class="milestone-marker" aria-hidden="true">
+        {% if milestone.achieved %}<span class="material-symbols-outlined">check</span>{% else %}{{ loop.index }}{% endif %}
+      </div>
+      <div class="milestone-copy">
+        <div class="milestone-heading">
+          <div>
+            <h2>{{ milestone.name }}</h2>
+            <p>{{ milestone.target_hours }} verified hours</p>
+          </div>
+          {% if milestone.achieved %}
+          <span class="milestone-status">Achieved</span>
+          {% elif milestone.current %}
+          <span class="milestone-status">In progress</span>
+          {% else %}
+          <span class="milestone-status">Upcoming</span>
+          {% endif %}
+        </div>
+        {% if milestone.current %}
+        <div class="milestone-track" role="progressbar" aria-label="Progress to {{ milestone.name }}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ milestone.progress_percent }}">
+          <span style="width: {{ milestone.progress_percent }}%"></span>
+        </div>
+        {% endif %}
+      </div>
+    </article>
+    {% endfor %}
+  </section>
+
+  <section class="progress-history" aria-labelledby="participation-heading">
+    <h2 id="participation-heading">Previously participated</h2>
+    {% if participated_opportunities %}
+    <ul class="list-group list-group-flush">
+      {% for opportunity, completed_hours in participated_opportunities %}
+      <li class="list-group-item d-flex justify-content-between align-items-center gap-3 px-0" style="background: transparent; color: var(--brand-ink);">
+        <div>
+          <strong>{{ opportunity.name }}</strong>
+          <span class="d-block text-body-secondary">{{ opportunity.start_date }}{% if opportunity.end_date != opportunity.start_date %} - {{ opportunity.end_date }}{% endif %}</span>
+        </div>
+        <span class="badge bg-primary-subtle text-primary-emphasis flex-shrink-0">{{ completed_hours | int }}h {{ ((completed_hours % 1) * 60) | int }}m</span>
+      </li>
+      {% endfor %}
+    </ul>
+    {% else %}
+    <p class="text-body-secondary mb-0">No completed opportunities yet.</p>
+    {% endif %}
+  </section>
+</main>
+{% endblock %}
+
+{% block additional_styles %}
+<style>
+  .progress-page { width: min(100%, 920px); margin: 0 auto; padding: 0.5rem 0 2rem; }
+  .progress-header { display: flex; justify-content: space-between; align-items: end; gap: 1.5rem; margin-bottom: 1.5rem; }
+  .progress-header h1 { margin: 0; color: var(--brand-ink); font-family: var(--brand-font-display); font-size: 2rem; }
+  .progress-header p:not(.progress-kicker) { margin: 0.5rem 0 0; color: var(--brand-muted); }
+  .progress-kicker { margin: 0 0 0.45rem; color: var(--brand-accent-2); font-size: 0.78rem; font-weight: 700; }
+  .progress-total { display: grid; gap: 0.15rem; text-align: right; color: var(--brand-muted); }
+  .progress-total strong { color: var(--brand-ink); font-family: var(--brand-font-display); font-size: 1.5rem; }
+  .progress-next { margin-bottom: 1.5rem; padding: 1.25rem; border: 1px solid color-mix(in srgb, var(--brand-accent) 40%, transparent); border-radius: var(--brand-radius); background: var(--brand-surface); }
+  .progress-next-copy { display: flex; justify-content: space-between; align-items: end; gap: 1rem; }
+  .progress-next h2 { margin: 0; color: var(--brand-ink); font-family: var(--brand-font-display); font-size: 1.25rem; }
+  .progress-next-copy > p { margin: 0; color: var(--brand-muted); }
+  .progress-next-copy > p strong { color: var(--brand-accent); }
+  .progress-track, .milestone-track { height: 0.55rem; overflow: hidden; border-radius: 999px; background: var(--brand-bg); }
+  .progress-track { margin-top: 1rem; }
+  .progress-track span, .milestone-track span { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, var(--brand-accent), var(--brand-accent-2)); transition: width 220ms ease; }
+  .progress-target { margin: 0.55rem 0 0; color: var(--brand-muted); font-size: 0.85rem; }
+  .milestone-roadmap { display: grid; gap: 0.75rem; }
+  .progress-history { margin-top: 1.75rem; }
+  .progress-history h2 { margin-bottom: 0.75rem; color: var(--brand-ink); font-size: 1.1rem; font-weight: 700; }
+  .milestone-row { display: grid; grid-template-columns: 2.5rem minmax(0, 1fr); gap: 0.9rem; align-items: start; }
+  .milestone-marker { display: grid; place-items: center; width: 2.25rem; aspect-ratio: 1; border: 1px solid color-mix(in srgb, var(--brand-muted) 35%, transparent); border-radius: 50%; color: var(--brand-muted); font-weight: 700; }
+  .milestone-row.achieved .milestone-marker { border-color: var(--brand-accent-2); background: color-mix(in srgb, var(--brand-accent-2) 18%, transparent); color: var(--brand-accent-2); }
+  .milestone-row.current .milestone-marker { border-color: var(--brand-accent); color: var(--brand-accent); }
+  .milestone-copy { min-width: 0; padding: 0.15rem 0 1rem; border-bottom: 1px solid color-mix(in srgb, var(--brand-ink) 10%, transparent); }
+  .milestone-heading { display: flex; justify-content: space-between; align-items: center; gap: 1rem; }
+  .milestone-heading h2 { margin: 0; color: var(--brand-ink); font-size: 1rem; font-weight: 700; }
+  .milestone-heading p { margin: 0.2rem 0 0; color: var(--brand-muted); font-size: 0.88rem; }
+  .milestone-status { flex: 0 0 auto; color: var(--brand-muted); font-size: 0.82rem; }
+  .milestone-row.achieved .milestone-status { color: var(--brand-accent-2); }
+  .milestone-row.current .milestone-status { color: var(--brand-accent); }
+  .milestone-track { margin-top: 0.75rem; }
+  @media (max-width: 600px) { .progress-header { align-items: start; flex-direction: column; } .progress-total { text-align: left; } .progress-next-copy { align-items: start; flex-direction: column; } }
+  @media (prefers-reduced-motion: reduce) { .progress-track span, .milestone-track span { transition: none; } }
+</style>
+{% endblock %}

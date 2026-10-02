@@ -1,0 +1,55 @@
+{
+  "system": "Student Awards",
+  "actors": [
+    {"name": "Student", "side": "left"},
+    {"name": "Admin", "side": "right"}
+  ],
+  "use_cases": [
+    {
+      "name": "Browse and Apply for Volunteer Opportunities",
+      "actors": ["Student"]
+    },
+    {
+      "name": "Request Hours Verification",
+      "actors": ["Student"]
+    },
+    {
+      "name": "View Class and Overall Leaderboards",
+      "actors": ["Student"]
+    },
+    {
+      "name": "View Overall and All-Class Leaderboards",
+      "actors": ["Admin"]
+    },
+    {
+      "name": "Search Leaderboards by Student ID or Name",
+      "actors": ["Admin"],
+      "extends": ["View Overall and All-Class Leaderboards"]
+    },
+    {
+      "name": "View Student Progress Roadmap",
+      "actors": ["Student"],
+      "includes": ["View Verified Hours and Completed Opportunity History"]
+    },
+    {
+      "name": "View Verified Hours and Completed Opportunity History"
+    },
+    {
+      "name": "View Profile",
+      "actors": ["Student", "Admin"]
+    },
+    {
+      "name": "Change Student Class",
+      "actors": ["Student"],
+      "extends": ["View Profile"]
+    },
+    {
+      "name": "Review Opportunity Applications",
+      "actors": ["Admin"]
+    },
+    {
+      "name": "Verify Student Hours",
+      "actors": ["Admin"]
+    }
+  ]
+}

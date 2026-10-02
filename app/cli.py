@@ -50,10 +50,20 @@ def cmd_seed(args: argparse.Namespace) -> None:
     """Insert demo users.
 
     bob / bobpass       (regular_user)
+    alice / alicepass   (regular_user)
+    chris / chrispass   (regular_user)
+    dana / danapass     (regular_user)
     admin / adminpass   (admin)
     """
+    from datetime import date, timedelta
+    from decimal import Decimal
+
     from app.database import ensure_db_and_tables, get_cli_session
+    from app.repositories.admin import AdminRepository
+    from app.repositories.opportunity import VolunteerOpportunityRepository
+    from app.repositories.student import StudentRepository
     from app.repositories.user import UserRepository
+    from app.models.volunteer_opportunity import VolunteerOpportunity
     from app.schemas.user import AdminCreate, RegularUserCreate
     from app.utilities.security import encrypt_password
 
@@ -61,21 +71,36 @@ def cmd_seed(args: argparse.Namespace) -> None:
     ensure_db_and_tables()
 
     demo_users = [
-        ("bob", "bob@example.com", "bobpass", "regular_user"),
-        ("admin", "admin@example.com", "adminpass", "admin"),
+        ("bob", "bob@example.com", "bobpass", "regular_user", "Class 1", Decimal("0")),
+        ("alice", "alice@example.com", "alicepass", "regular_user", "Class 1", Decimal("0")),
+        ("chris", "chris@example.com", "chrispass", "regular_user", "Class 2", Decimal("0")),
+        ("dana", "dana@example.com", "danapass", "regular_user", "Class 2", Decimal("0")),
+        ("admin", "admin@example.com", "adminpass", "admin", None, None),
     ]
 
     created = 0
     skipped = 0
     with get_cli_session() as session:
         repo = UserRepository(session)
-        for username, email, password, role in demo_users:
-            if repo.get_by_username(username):
+        student_repo = StudentRepository(session)
+        admin_repo = AdminRepository(session)
+        opportunity_repo = VolunteerOpportunityRepository(session)
+        for username, email, password, role, class_name, seed_hours in demo_users:
+            user = repo.get_by_username(username)
+            if user:
+                if role == "admin":
+                    admin_repo.ensure_for_user(user)
+                else:
+                    student = student_repo.ensure_for_user(user, class_name=class_name)
+                    if student.class_name != class_name:
+                        student.class_name = class_name
+                        session.add(student)
+                        session.commit()
                 print(f"  skip  {username} (already exists)")
                 skipped += 1
                 continue
             payload_cls = AdminCreate if role == "admin" else RegularUserCreate
-            repo.create(
+            user = repo.create(
                 payload_cls(
                     username=username,
                     email=email,
@@ -83,11 +108,75 @@ def cmd_seed(args: argparse.Namespace) -> None:
                     role=role,
                 )
             )
+            if role == "admin":
+                admin_repo.ensure_for_user(user)
+            else:
+                student = student_repo.ensure_for_user(user, class_name=class_name)
+                student.hours = seed_hours
+                session.add(student)
+                session.commit()
             print(f"  create {username} ({role})")
             created += 1
 
+        opportunities = opportunity_repo.list_all()
+        if not opportunities:
+            start = date.today() + timedelta(days=7)
+            opportunities = [
+                VolunteerOpportunity(
+                    name="Campus Welcome Crew",
+                    description="Help new students find campus services and settle into the first week.",
+                    start_date=start,
+                    end_date=start + timedelta(days=2),
+                    max_applicants=12,
+                    image_url="https://images.unsplash.com/photo-1531206715517-5c0ba140b2b8?auto=format&fit=crop&w=1000&q=85",
+                ),
+                VolunteerOpportunity(
+                    name="Community Garden Day",
+                    description="Work with fellow students to prepare planting beds and care for the campus garden.",
+                    start_date=start + timedelta(days=7),
+                    end_date=start + timedelta(days=7),
+                    max_applicants=10,
+                    image_url="https://images.unsplash.com/photo-1559027615-cd4628902d4a?auto=format&fit=crop&w=1000&q=85",
+                ),
+                VolunteerOpportunity(
+                    name="Library Reading Circle",
+                    description="Support a welcoming reading session for young learners in the community.",
+                    start_date=start + timedelta(days=14),
+                    end_date=start + timedelta(days=14),
+                    max_applicants=8,
+                    image_url="https://images.unsplash.com/photo-1509099836639-18ba1795216d?auto=format&fit=crop&w=1000&q=85",
+                ),
+                VolunteerOpportunity(
+                    name="Food Bank Sorting Team",
+                    description="Sort donated groceries and prepare food parcels for local families.",
+                    start_date=start + timedelta(days=21),
+                    end_date=start + timedelta(days=21),
+                    max_applicants=14,
+                    image_url="https://images.unsplash.com/photo-1593113598332-cd288d649433?auto=format&fit=crop&w=1000&q=85",
+                ),
+                VolunteerOpportunity(
+                    name="Campus Clean-Up",
+                    description="Help keep shared campus spaces clean, safe, and welcoming.",
+                    start_date=start + timedelta(days=28),
+                    end_date=start + timedelta(days=28),
+                    max_applicants=20,
+                    image_url="https://images.unsplash.com/photo-1532996122724-e3c354a0b15b?auto=format&fit=crop&w=1000&q=85",
+                ),
+                VolunteerOpportunity(
+                    name="Digital Skills Mentors",
+                    description="Assist community members as they practise everyday computer and internet skills.",
+                    start_date=start + timedelta(days=35),
+                    end_date=start + timedelta(days=35),
+                    max_applicants=6,
+                    image_url="https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=1000&q=85",
+                ),
+            ]
+            opportunities = [opportunity_repo.create(item) for item in opportunities]
+            print(f"  create {len(opportunities)} volunteer opportunities")
+
     print(f"Seed done — created {created}, skipped {skipped}.")
-    print("Login with bob/bobpass or admin/adminpass")
+    print("Student logins: bob/bobpass, alice/alicepass, chris/chrispass, dana/danapass")
+    print("Admin login: admin/adminpass")
 
 
 def cmd_run(args: argparse.Namespace) -> None:

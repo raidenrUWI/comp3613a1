@@ -2,8 +2,365 @@
 {% block title %}Home{% endblock %}
 
 {% block subpage_content %}
-<div class="container-fluid py-2">
-  <h1 class="h4 mb-2">Home</h1>
-  <p class="text-muted mb-0">Workflow screens replace this shell in Phase 5 implement.</p>
+<main class="opportunity-page">
+  <header class="opportunity-heading">
+    <div>
+      <p class="opportunity-kicker">STUDENT AWARDS / VOLUNTEER</p>
+      <h1>Find a way to pitch in.</h1>
+      <p>Explore campus opportunities and turn your time into verified hours.</p>
+    </div>
+    <span class="opportunity-count">{{ opportunities|length }} available</span>
+  </header>
+
+  {% if opportunities %}
+  <section class="opportunity-grid" aria-label="Volunteer opportunities">
+    {% for card in opportunities %}
+    <article class="opportunity-card">
+      <div class="opportunity-image-wrap">
+        <img class="opportunity-image" src="{{ card.opportunity.image_url }}"
+             alt="" loading="lazy">
+        <span class="opportunity-date">{{ card.opportunity.start_date }} - {{ card.opportunity.end_date }}</span>
+      </div>
+      <div class="opportunity-card-body">
+        <div class="opportunity-card-copy">
+          <h2>{{ card.opportunity.name }}</h2>
+          <p>{{ card.opportunity.description }}</p>
+        </div>
+        {% if card.capacity_reached %}
+        <p class="opportunity-capacity">At capacity; applications are still reviewed.</p>
+        {% else %}
+        <p class="opportunity-capacity">{{ card.places_left }} place{{ '' if card.places_left == 1 else 's' }} left</p>
+        {% endif %}
+      </div>
+
+      <div class="opportunity-actions" aria-label="Actions for {{ card.opportunity.name }}">
+        {% if card.application and card.application.status == "accepted" %}
+          {% if card.hours_application and card.hours_application.status in ["pending", "accepted"] %}
+          <p class="opportunity-state">
+            Hours request: <strong>{{ card.hours_application.status|title }}</strong>
+          </p>
+          {% else %}
+          <form method="post" action="{{ url_for('request_hours', opportunity_application_id=card.application.opportunity_application_id) }}" class="opportunity-form">
+            <label>Hours completed</label>
+            <div class="hours-picker">
+              <select name="hours" aria-label="Hours" required>
+                {% for hour_option in range(0, 13) %}
+                <option value="{{ hour_option }}">{{ hour_option }}h</option>
+                {% endfor %}
+              </select>
+              <select name="minutes" aria-label="Minutes">
+                <option value="0">0m</option>
+                <option value="15">15m</option>
+                <option value="30">30m</option>
+                <option value="45">45m</option>
+              </select>
+            </div>
+            <label for="note-{{ card.application.opportunity_application_id }}">Note</label>
+            <textarea id="note-{{ card.application.opportunity_application_id }}" name="note" rows="2" required></textarea>
+            <button class="opportunity-action-button" type="submit">Request hours</button>
+          </form>
+          {% endif %}
+        {% elif card.application and card.application.status == "pending" %}
+        <p class="opportunity-state">Application pending</p>
+        {% elif card.denied_applications >= 3 %}
+        <p class="opportunity-state">Application limit reached</p>
+        {% else %}
+        <form method="post" action="{{ url_for('apply_opportunity', opportunity_id=card.opportunity.opportunity_id) }}" class="opportunity-form">
+          <label for="admin-{{ card.opportunity.opportunity_id }}">Reviewing admin</label>
+          <select id="admin-{{ card.opportunity.opportunity_id }}" name="admin_id" required>
+            {% for admin in card.admins %}
+            <option value="{{ admin.admin_id }}">{{ admin.name }}</option>
+            {% endfor %}
+          </select>
+          <button class="opportunity-action-button" type="submit" {% if not card.admins %}disabled{% endif %}>Apply</button>
+        </form>
+        {% endif %}
+      </div>
+    </article>
+    {% endfor %}
+  </section>
+  {% else %}
+  <section class="opportunity-empty">
+    <h2>No opportunities available</h2>
+    <p>New volunteer opportunities will appear here.</p>
+  </section>
+  {% endif %}
 </div>
+{% endblock %}
+
+{% block additional_styles %}
+<style>
+  .opportunity-page {
+    width: min(100%, 1360px);
+    margin: 0 auto;
+    padding: 0.5rem clamp(0.25rem, 2vw, 1.5rem) 2rem;
+  }
+
+  .opportunity-heading {
+    display: flex;
+    align-items: end;
+    justify-content: space-between;
+    gap: 1.5rem;
+    margin: 0.5rem 0 1.75rem;
+  }
+
+  .opportunity-kicker {
+    margin: 0 0 0.6rem;
+    color: var(--brand-accent-2);
+    font-size: 0.78rem;
+    font-weight: 700;
+  }
+
+  .opportunity-heading h1 {
+    margin: 0;
+    color: var(--brand-ink);
+    font-family: var(--brand-font-display);
+    font-size: 2rem;
+    font-weight: 600;
+  }
+
+  .opportunity-heading p:not(.opportunity-kicker) {
+    margin: 0.55rem 0 0;
+    color: var(--brand-muted);
+  }
+
+  .opportunity-count {
+    flex: 0 0 auto;
+    color: var(--brand-muted);
+    font-size: 0.9rem;
+  }
+
+  .opportunity-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 290px), 1fr));
+    gap: 1rem;
+    align-items: stretch;
+  }
+
+  .opportunity-card {
+    position: relative;
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    overflow: hidden;
+    border: 1px solid rgba(237, 243, 236, 0.12);
+    border-radius: var(--brand-radius);
+    background: var(--brand-surface);
+    transition: border-color 180ms ease, transform 180ms ease, box-shadow 180ms ease;
+  }
+
+  .opportunity-card:hover,
+  .opportunity-card:focus-within {
+    z-index: 2;
+    transform: translateY(-3px);
+    border-color: color-mix(in srgb, var(--brand-accent-2) 58%, transparent);
+    box-shadow: 0 18px 42px rgba(0, 0, 0, 0.28);
+  }
+
+  .opportunity-image-wrap {
+    position: relative;
+    aspect-ratio: 16 / 9;
+    overflow: hidden;
+    background: linear-gradient(135deg, #29475f, #182430 70%, #3b4a3c);
+  }
+
+  .opportunity-image {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 320ms ease;
+  }
+
+  .opportunity-card:hover .opportunity-image,
+  .opportunity-card:focus-within .opportunity-image {
+    transform: scale(1.035);
+  }
+
+  .opportunity-date {
+    position: absolute;
+    right: 0.75rem;
+    bottom: 0.75rem;
+    max-width: calc(100% - 1.5rem);
+    padding: 0.35rem 0.55rem;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 0.3rem;
+    color: white;
+    background: rgba(15, 20, 27, 0.88);
+    font-size: 0.78rem;
+  }
+
+  .opportunity-card-body {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    padding: 1rem 1rem 1.1rem;
+  }
+
+  .opportunity-card-copy h2 {
+    margin: 0 0 0.45rem;
+    color: var(--brand-ink);
+    font-family: var(--brand-font-display);
+    font-size: 1.2rem;
+    font-weight: 600;
+  }
+
+  .opportunity-card-copy p {
+    display: -webkit-box;
+    overflow: hidden;
+    margin: 0;
+    color: var(--brand-muted);
+    line-height: 1.5;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+  }
+
+  .opportunity-capacity {
+    margin: 0.9rem 0 0;
+    color: var(--brand-accent-2);
+    font-size: 0.82rem;
+    font-weight: 600;
+  }
+
+  .opportunity-actions {
+    position: absolute;
+    inset: auto 0 0;
+    display: flex;
+    min-height: 58%;
+    align-items: end;
+    padding: 1rem;
+    color: var(--brand-ink);
+    background: linear-gradient(180deg, transparent 0%, rgba(15, 20, 27, 0.94) 28%);
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(0.5rem);
+    transition: opacity 180ms ease, transform 180ms ease;
+  }
+
+  .opportunity-card:hover .opportunity-actions,
+  .opportunity-card:focus-within .opportunity-actions {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(0);
+  }
+
+  .opportunity-form {
+    display: grid;
+    width: 100%;
+    gap: 0.4rem;
+  }
+
+  .opportunity-form label {
+    color: var(--brand-light);
+    font-size: 0.8rem;
+    font-weight: 600;
+  }
+
+  .opportunity-form select,
+  .opportunity-form input,
+  .opportunity-form textarea {
+    width: 100%;
+    min-width: 0;
+    padding: 0.55rem 0.65rem;
+    border: 1px solid rgba(237, 243, 236, 0.24);
+    border-radius: 0.3rem;
+    color: var(--brand-ink);
+    background: #171f2a;
+    font: inherit;
+    font-size: 0.9rem;
+  }
+
+  .hours-picker {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.4rem;
+  }
+
+  .opportunity-form select:focus,
+  .opportunity-form input:focus,
+  .opportunity-form textarea:focus {
+    border-color: var(--brand-accent-2);
+    outline: 2px solid color-mix(in srgb, var(--brand-accent-2) 35%, transparent);
+    outline-offset: 1px;
+  }
+
+  .opportunity-action-button {
+    min-height: 2.7rem;
+    margin-top: 0.2rem;
+    border: 0;
+    border-radius: 0.3rem;
+    color: #10202a;
+    background: var(--brand-accent);
+    font: inherit;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background-color 160ms ease, transform 160ms ease;
+  }
+
+  .opportunity-action-button:hover:not(:disabled) {
+    transform: translateY(-1px);
+    background: color-mix(in srgb, var(--brand-accent) 86%, #fff);
+  }
+
+  .opportunity-action-button:disabled {
+    cursor: not-allowed;
+    opacity: 0.55;
+  }
+
+  .opportunity-state {
+    width: 100%;
+    margin: 0;
+    padding: 0.75rem;
+    border: 1px solid rgba(237, 243, 236, 0.18);
+    border-radius: 0.3rem;
+    color: var(--brand-light);
+    background: rgba(23, 31, 42, 0.95);
+  }
+
+  .opportunity-empty {
+    padding: 2rem;
+    border: 1px solid rgba(237, 243, 236, 0.12);
+    border-radius: var(--brand-radius);
+    color: var(--brand-muted);
+    background: var(--brand-surface);
+  }
+
+  .opportunity-empty h2 {
+    margin: 0 0 0.4rem;
+    color: var(--brand-ink);
+    font-size: 1.1rem;
+  }
+
+  @media (max-width: 700px) {
+    .opportunity-heading {
+      align-items: start;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .opportunity-heading h1 {
+      font-size: 1.7rem;
+    }
+
+    .opportunity-actions {
+      position: static;
+      min-height: 0;
+      margin-top: auto;
+      padding: 0 1rem 1rem;
+      background: transparent;
+      opacity: 1;
+      pointer-events: auto;
+      transform: none;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .opportunity-card,
+    .opportunity-image,
+    .opportunity-actions,
+    .opportunity-action-button {
+      transition: none;
+    }
+  }
+</style>
 {% endblock %}

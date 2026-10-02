@@ -1,0 +1,273 @@
+{% extends "authenticated-base.html" %}
+{% block title %}Leaderboard{% endblock %}
+
+{% block subpage_content %}
+<main class="leaderboard-page">
+  <header class="leaderboard-header">
+    <div>
+      <p class="leaderboard-kicker">STUDENT AWARDS / RANKINGS</p>
+      <h1>Leaderboard</h1>
+    </div>
+  </header>
+
+  <div class="leaderboard-controls">
+    <nav class="leaderboard-tabs" aria-label="Leaderboard views">
+      <a class="leaderboard-tab {{ 'active' if class_name is none }}" href="{{ url_for('leaderboard_view') }}{% if user.role == 'admin' and search_term %}?search={{ search_term | urlencode }}{% endif %}" {% if class_name is none %}aria-current="page"{% endif %}>Overall</a>
+      {% for class_label in classes %}
+      <a class="leaderboard-tab {{ 'active' if class_name == class_label }}" href="{{ url_for('leaderboard_view') }}?class_name={{ class_label | urlencode }}{% if user.role == 'admin' and search_term %}&amp;search={{ search_term | urlencode }}{% endif %}" {% if class_name == class_label %}aria-current="page"{% endif %}>{{ class_label }}</a>
+      {% endfor %}
+    </nav>
+
+    {% if user.role == 'admin' %}
+    <form method="get" action="{{ url_for('leaderboard_view') }}" class="leaderboard-search">
+      {% if class_name %}<input type="hidden" name="class_name" value="{{ class_name }}">{% endif %}
+      <label for="leaderboard-search">Find student</label>
+      <input id="leaderboard-search" type="search" name="search" value="{{ search_term or '' }}" placeholder="Student ID or name">
+      <button type="submit">Search</button>
+      {% if search_term %}
+      <a href="{{ url_for('leaderboard_view') }}{% if class_name %}?class_name={{ class_name | urlencode }}{% endif %}">Clear</a>
+      {% endif %}
+    </form>
+    {% endif %}
+  </div>
+
+  <section class="leaderboard-panel">
+    <div class="leaderboard-table-wrap">
+      <table class="leaderboard-table">
+        <thead>
+          <tr>
+            <th>Rank</th>
+            <th>Student</th>
+            <th>Class</th>
+            <th>Hours</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for student in students %}
+          <tr class="{{ 'leaderboard-own-row' if student.student_id == viewer_student_id else '' }}">
+            <td>
+              {% if loop.index == 1 %}
+              <span class="leaderboard-medal medal-gold">1</span>
+              {% elif loop.index == 2 %}
+              <span class="leaderboard-medal medal-silver">2</span>
+              {% elif loop.index == 3 %}
+              <span class="leaderboard-medal medal-bronze">3</span>
+              {% else %}
+              <span class="leaderboard-medal">{{ loop.index }}</span>
+              {% endif %}
+            </td>
+            <td>
+              {{ student.name }}
+              {% if student.student_id == viewer_student_id %}<span class="leaderboard-you">You</span>{% endif %}
+            </td>
+            <td>{{ student.class_name }}</td>
+            <td>{{ (student.hours | int) }}h {{ ((student.hours % 1) * 60) | int }}m</td>
+          </tr>
+          {% else %}
+          <tr>
+            <td colspan="4">No students are ranked for this selection yet.</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+</main>
+{% endblock %}
+
+{% block additional_styles %}
+<style>
+  .leaderboard-page {
+    width: min(100%, 1080px);
+    margin: 0 auto;
+    padding: 0.5rem 0 2rem;
+  }
+
+  .leaderboard-header {
+    display: flex;
+    align-items: end;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .leaderboard-kicker {
+    margin: 0 0 0.5rem;
+    color: var(--brand-accent-2);
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+  }
+
+  .leaderboard-header h1 {
+    margin: 0;
+    color: var(--brand-ink);
+    font-family: var(--brand-font-display);
+    font-size: 2rem;
+  }
+
+  .leaderboard-tabs {
+    display: flex;
+    flex: 1 1 auto;
+    gap: 0.35rem;
+    overflow-x: auto;
+    border-bottom: 1px solid rgba(237, 243, 236, 0.14);
+  }
+
+  .leaderboard-controls {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .leaderboard-search {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .leaderboard-search label {
+    color: var(--brand-muted);
+    font-size: 0.85rem;
+    white-space: nowrap;
+  }
+
+  .leaderboard-search input {
+    width: min(16rem, 30vw);
+    min-width: 10rem;
+    padding: 0.55rem 0.7rem;
+    border: 1px solid rgba(237, 243, 236, 0.18);
+    border-radius: 0.4rem;
+    background: var(--brand-bg);
+    color: var(--brand-ink);
+  }
+
+  .leaderboard-search button {
+    padding: 0.55rem 0.8rem;
+    border: 0;
+    border-radius: 0.4rem;
+    background: var(--brand-accent);
+    color: #03131d;
+    font: inherit;
+    font-weight: 700;
+  }
+
+  .leaderboard-search a {
+    color: var(--brand-muted);
+  }
+
+  .leaderboard-tab {
+    flex: 0 0 auto;
+    padding: 0.7rem 1rem;
+    border-bottom: 2px solid transparent;
+    color: var(--brand-muted);
+    font-weight: 600;
+    text-decoration: none;
+    transition: color 160ms ease, border-color 160ms ease;
+  }
+
+  .leaderboard-tab:hover,
+  .leaderboard-tab.active {
+    border-bottom-color: var(--brand-accent);
+    color: var(--brand-ink);
+  }
+
+  .leaderboard-panel {
+    overflow: hidden;
+    border: 1px solid rgba(237, 243, 236, 0.12);
+    border-radius: var(--brand-radius);
+    background: var(--brand-surface);
+    box-shadow: 0 18px 40px rgba(3, 8, 14, 0.18);
+  }
+
+  .leaderboard-table-wrap {
+    overflow-x: auto;
+  }
+
+  .leaderboard-table {
+    width: 100%;
+    border-collapse: collapse;
+    color: var(--brand-ink);
+  }
+
+  .leaderboard-table th,
+  .leaderboard-table td {
+    padding: 0.9rem 1rem;
+    border-bottom: 1px solid rgba(237, 243, 236, 0.08);
+    text-align: left;
+  }
+
+  .leaderboard-table thead th {
+    color: var(--brand-muted);
+    font-size: 0.82rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    background: rgba(255, 255, 255, 0.02);
+  }
+
+  .leaderboard-table tbody tr:hover {
+    background: rgba(103, 173, 255, 0.04);
+  }
+
+  .leaderboard-table tbody tr.leaderboard-own-row {
+    background: color-mix(in srgb, var(--brand-accent) 12%, var(--brand-surface));
+    box-shadow: inset 3px 0 var(--brand-accent);
+  }
+
+  .leaderboard-own-row td:nth-child(2) {
+    color: var(--brand-accent);
+    font-weight: 700;
+  }
+
+  .leaderboard-you {
+    display: inline-block;
+    margin-left: 0.45rem;
+    padding: 0.12rem 0.45rem;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--brand-accent) 18%, transparent);
+    color: var(--brand-accent);
+    font-size: 0.72rem;
+    font-weight: 700;
+    vertical-align: middle;
+  }
+
+  .leaderboard-medal {
+    display: inline-grid;
+    place-items: center;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 999px;
+    font-weight: 700;
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--brand-ink);
+  }
+
+  .medal-gold { background: linear-gradient(135deg, #f7d86b, #d9a81b); color: #1b1c1d; }
+  .medal-silver { background: linear-gradient(135deg, #dfe4eb, #b7c1ce); color: #1b1c1d; }
+  .medal-bronze { background: linear-gradient(135deg, #d9a06b, #9d6228); color: #fff; }
+
+  @media (max-width: 680px) {
+    .leaderboard-header {
+      display: block;
+    }
+
+    .leaderboard-controls {
+      align-items: stretch;
+      flex-direction: column;
+    }
+
+    .leaderboard-search {
+      flex-wrap: wrap;
+    }
+
+    .leaderboard-search input {
+      flex: 1 1 12rem;
+      width: auto;
+    }
+
+  }
+</style>
+{% endblock %}

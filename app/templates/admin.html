@@ -3,7 +3,97 @@
 
 {% block subpage_content %}
 <div class="container-fluid py-2">
-  <h1 class="h4 mb-2">Admin</h1>
-  <p class="text-muted mb-0">Admin workflow screens replace this shell in Phase 5 implement.</p>
+  <section class="mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <div>
+        <p class="opportunity-kicker mb-1">ADMIN / APPLICATIONS</p>
+        <h1 class="h3 mb-0">Pending opportunity applications</h1>
+      </div>
+      <span class="badge rounded-pill bg-primary-subtle text-primary-emphasis px-3 py-2">{{ opportunity_requests|length }} open</span>
+    </div>
+
+    {% if opportunity_requests %}
+      <div class="row g-3">
+        {% for item in opportunity_requests %}
+        <div class="col-12">
+          <div class="card border-0 shadow-sm">
+            <div class="card-body">
+              <div class="d-flex justify-content-between align-items-start gap-3 mb-2">
+                <div>
+                  <h2 class="h5 mb-1">{{ item.student.name }} · {{ item.student.class_name }}</h2>
+                  <p class="mb-0 text-muted">{{ item.opportunity.name }}</p>
+                </div>
+                <span class="badge text-bg-warning text-dark">Pending</span>
+              </div>
+              <div class="d-flex gap-2">
+                <form method="post" action="{{ url_for('review_opportunity_application', opportunity_application_id=item.application.opportunity_application_id) }}">
+                  <input type="hidden" name="decision" value="approve">
+                  <button class="btn btn-success" type="submit">Accept</button>
+                </form>
+                <form method="post" action="{{ url_for('review_opportunity_application', opportunity_application_id=item.application.opportunity_application_id) }}">
+                  <input type="hidden" name="decision" value="reject">
+                  <button class="btn btn-outline-danger" type="submit">Reject</button>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="card border-0 shadow-sm">
+        <div class="card-body">
+          <p class="mb-0 text-muted">There are no pending opportunity applications assigned to you.</p>
+        </div>
+      </div>
+    {% endif %}
+  </section>
+
+  <section>
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+      <p class="opportunity-kicker mb-1">ADMIN / VERIFY HOURS</p>
+      <h1 class="h3 mb-0">Pending hours requests</h1>
+    </div>
+    <span class="badge rounded-pill bg-primary-subtle text-primary-emphasis px-3 py-2">{{ requests|length }} open</span>
+  </div>
+
+  {% if requests %}
+    <div class="row g-3">
+      {% for item in requests %}
+      <div class="col-12">
+        <div class="card border-0 shadow-sm">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-start gap-3 mb-2">
+              <div>
+                <h2 class="h5 mb-1">{{ item.student.name }} · {{ item.student.class_name }}</h2>
+                <p class="mb-0 text-muted">{{ item.opportunity.name }}</p>
+              </div>
+              <span class="badge text-bg-warning text-dark">{{ (item.hours_request.hours | int) }}h {{ ((item.hours_request.hours % 1) * 60) | int }}m</span>
+            </div>
+            <p class="mb-3 text-body-secondary">{{ item.hours_request.note }}</p>
+            <div class="d-flex gap-2">
+              <form method="post" action="{{ url_for('review_hours', hours_application_id=item.hours_request.hours_application_id) }}">
+                <input type="hidden" name="decision" value="approve">
+                <button class="btn btn-success" type="submit">Approve</button>
+              </form>
+              <form method="post" action="{{ url_for('review_hours', hours_application_id=item.hours_request.hours_application_id) }}">
+                <input type="hidden" name="decision" value="reject">
+                <button class="btn btn-outline-danger" type="submit">Reject</button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="card border-0 shadow-sm">
+      <div class="card-body">
+        <p class="mb-0 text-muted">There are no pending student hours requests.</p>
+      </div>
+    </div>
+  {% endif %}
+  </section>
 </div>
 {% endblock %}

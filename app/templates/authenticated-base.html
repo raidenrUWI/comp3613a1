@@ -4,7 +4,7 @@
 <style>
     body {
         overflow-x: hidden;
-        background: #f4f6f8;
+        background: var(--brand-bg);
     }
 
     #wrapper {
@@ -50,11 +50,11 @@
         transition: all 0.3s;
         display: flex;
         flex-direction: column;
-        background-color: #f4f6f8;
+        background-color: var(--brand-bg);
     }
 
     .navbar {
-        border-bottom: 1px solid #dee2e6;
+        border-bottom: 1px solid color-mix(in srgb, var(--brand-ink) 12%, transparent);
     }
 </style>
 {% block additional_styles %}{% endblock %}
@@ -63,14 +63,37 @@
 {% block content %}
 <div id="wrapper">
     <nav id="sidebar" class="p-3 d-flex flex-column vh-100">
-        <div class="brand-wordmark">FastStarter</div>
+        <div class="brand-wordmark">Student Awards</div>
 
         <ul class="nav nav-pills flex-column gap-2 flex-grow-1">
             <li class="nav-item">
-                <a class="nav-link d-flex align-items-center {{ 'active' if request.url.path.startswith('/app') }}"
-                   href="{{ url_for('user_home_view') }}">
+                <a class="nav-link d-flex align-items-center {{ 'active' if (user.role == 'admin' and request.url.path == '/admin') or (user.role != 'admin' and request.url.path == '/app') }}"
+                   href="{{ url_for('admin_home_view') if user.role == 'admin' else url_for('user_home_view') }}">
                     <span class="material-symbols-outlined me-2">home</span>
-                    Home
+                    {{ 'Applications' if user.role == 'admin' else 'Opportunities' }}
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link d-flex align-items-center {{ 'active' if request.url.path.startswith('/app/leaderboard') }}"
+                   href="{{ url_for('leaderboard_view') }}">
+                    <span class="material-symbols-outlined me-2">leaderboard</span>
+                    Leaderboard
+                </a>
+            </li>
+            {% if user.role != 'admin' %}
+            <li class="nav-item">
+                <a class="nav-link d-flex align-items-center {{ 'active' if request.url.path.startswith('/app/progress') }}"
+                   href="{{ url_for('student_progress_view') }}">
+                    <span class="material-symbols-outlined me-2">track_changes</span>
+                    Progress
+                </a>
+            </li>
+            {% endif %}
+            <li class="nav-item">
+                <a class="nav-link d-flex align-items-center {{ 'active' if request.url.path in ['/app/profile', '/admin/profile'] }}"
+                   href="{{ url_for('admin_profile_view') if user.role == 'admin' else url_for('student_profile_view') }}">
+                    <span class="material-symbols-outlined me-2">person</span>
+                    Profile
                 </a>
             </li>
             <li class="nav-item mt-auto">
@@ -83,7 +106,7 @@
     </nav>
 
     <div id="content">
-        <nav class="navbar navbar-expand-lg bg-white mb-4 px-3 rounded-3 shadow-sm">
+        <nav class="navbar navbar-expand-lg mb-4 px-3 rounded-3 shadow-sm" style="background: var(--brand-surface); color: var(--brand-ink);">
             <button class="btn btn-outline-secondary" id="menu-toggle" type="button">
                 <span class="material-symbols-outlined md-dark">menu</span>
             </button>

@@ -1,0 +1,46 @@
+@startuml
+!pragma layout smetana
+skinparam shadowing false
+skinparam actorBorderColor #1B365D
+skinparam actorFontColor #1E232D
+skinparam usecaseBackgroundColor #FFFFFF
+skinparam usecaseBorderColor #1B365D
+skinparam usecaseFontColor #1E232D
+skinparam rectangleBorderColor #1B365D
+skinparam rectangleBackgroundColor #F8FAFC
+skinparam arrowColor #1B365D
+
+actor "Student" as Student
+
+rectangle "Student Awards" {
+  usecase "Browse and Apply for Volunteer Opportunities" as Browse_and_Apply_for_Volunteer_Opportunities
+  usecase "Request Hours Verification" as Request_Hours_Verification
+  usecase "View Class and Overall Leaderboards" as View_Class_and_Overall_Leaderboards
+  usecase "View Overall and All-Class Leaderboards" as View_Overall_and_All_Class_Leaderboards
+  usecase "Search Leaderboards by Student ID or Name" as Search_Leaderboards_by_Student_ID_or_Name
+  usecase "View Student Progress Roadmap" as View_Student_Progress_Roadmap
+  usecase "View Verified Hours and Completed Opportunity History" as View_Verified_Hours_and_Completed_Opportunity_History
+  usecase "View Profile" as View_Profile
+  usecase "Change Student Class" as Change_Student_Class
+  usecase "Review Opportunity Applications" as Review_Opportunity_Applications
+  usecase "Verify Student Hours" as Verify_Student_Hours
+}
+
+actor "Admin" as Admin
+
+Student --> Browse_and_Apply_for_Volunteer_Opportunities
+Student --> Request_Hours_Verification
+Student --> View_Class_and_Overall_Leaderboards
+View_Overall_and_All_Class_Leaderboards <-- Admin
+Search_Leaderboards_by_Student_ID_or_Name <-- Admin
+Search_Leaderboards_by_Student_ID_or_Name ..> View_Overall_and_All_Class_Leaderboards : <<extend>>
+Student --> View_Student_Progress_Roadmap
+View_Student_Progress_Roadmap ..> View_Verified_Hours_and_Completed_Opportunity_History : <<include>>
+Student --> View_Profile
+View_Profile <-- Admin
+Student --> Change_Student_Class
+Change_Student_Class ..> View_Profile : <<extend>>
+Review_Opportunity_Applications <-- Admin
+Verify_Student_Hours <-- Admin
+
+@enduml

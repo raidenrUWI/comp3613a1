@@ -1,17 +1,19 @@
 :root {
-  /* Phase 5 theming: Guide overwrites these from docs/report.md preferences */
-  --brand-name: "FastStarter";
-  --brand-bg: #0c1218;
-  --brand-surface: #f7f4ef;
-  --brand-ink: #14202b;
-  --brand-muted: #6a7a88;
-  --brand-accent: #c45c26;
-  --brand-accent-2: #2a6f6b;
-  --brand-sidebar: #14202b;
-  --brand-sidebar-text: #a8b4bf;
-  --brand-font-display: "Fraunces", Georgia, serif;
-  --brand-font-body: "Source Sans 3", "Segoe UI", sans-serif;
-  --brand-radius: 0.85rem;
+  --brand-name: "Student Awards";
+  --brand-bg: #0f141b;
+  --brand-surface: #171f2a;
+  --brand-surface-raised: #202c39;
+  --brand-ink: #edf2f7;
+  --brand-light: #f6f8fb;
+  --brand-muted: #a8b4c2;
+  --brand-accent: #80bfff;
+  --brand-accent-2: #5dd4d0;
+  --brand-sidebar: #111a24;
+  --brand-sidebar-text: #b1bfce;
+  --brand-font-display: "Space Grotesk", "Segoe UI", sans-serif;
+  --brand-font-body: "DM Sans", "Segoe UI", sans-serif;
+  --brand-radius: 0.5rem;
+  color-scheme: dark;
 }
 
 *,
@@ -25,12 +27,23 @@ body {
   font-family: var(--brand-font-body);
   color: var(--brand-ink);
   background: var(--brand-bg);
+  line-height: 1.55;
 }
 
 .brand-wordmark {
   font-family: var(--brand-font-display);
-  font-weight: 650;
-  letter-spacing: -0.03em;
+  font-weight: 600;
+  letter-spacing: 0;
+}
+
+:focus-visible {
+  outline: 2px solid var(--brand-accent);
+  outline-offset: 3px;
+}
+
+::selection {
+  color: var(--brand-bg);
+  background: var(--brand-accent);
 }
 
 /* —— Public landing —— */
@@ -38,14 +51,14 @@ body {
   min-height: 100vh;
   display: grid;
   grid-template-rows: auto 1fr auto;
-  color: var(--brand-surface);
+  color: var(--brand-light);
   background:
-    linear-gradient(160deg, rgba(12, 18, 24, 0.55), rgba(12, 18, 24, 0.82)),
-    radial-gradient(ellipse 80% 60% at 15% 20%, rgba(42, 111, 107, 0.45), transparent 55%),
-    radial-gradient(ellipse 70% 50% at 90% 80%, rgba(196, 92, 38, 0.28), transparent 50%),
-    linear-gradient(180deg, #1a2834 0%, #0c1218 100%);
+    radial-gradient(ellipse at 78% 22%, rgba(93, 212, 208, 0.18), transparent 36%),
+    radial-gradient(ellipse at 12% 92%, rgba(128, 191, 255, 0.12), transparent 34%),
+    linear-gradient(135deg, #1a2735 0%, #0f141b 58%, #152230 100%);
   position: relative;
   overflow: hidden;
+  isolation: isolate;
 }
 
 .landing::before {
@@ -57,8 +70,8 @@ body {
       -18deg,
       transparent,
       transparent 48px,
-      rgba(247, 244, 239, 0.025) 48px,
-      rgba(247, 244, 239, 0.025) 49px
+      rgba(243, 246, 239, 0.035) 48px,
+      rgba(243, 246, 239, 0.035) 49px
     );
   pointer-events: none;
 }
@@ -78,8 +91,8 @@ body {
 }
 
 .landing-nav .brand-wordmark {
-  font-size: clamp(1.4rem, 2.5vw, 1.85rem);
-  color: var(--brand-surface);
+  font-size: 1.55rem;
+  color: var(--brand-light);
   text-decoration: none;
 }
 
@@ -94,28 +107,29 @@ body {
   flex-direction: column;
   justify-content: center;
   padding: clamp(2rem, 8vh, 5rem) clamp(1.25rem, 4vw, 3rem) 3rem;
-  max-width: 42rem;
+  max-width: 48rem;
+  animation: rise-in 650ms cubic-bezier(0.2, 0.75, 0.25, 1) both;
 }
 
 .landing-kicker {
   font-size: 0.8rem;
   text-transform: uppercase;
-  letter-spacing: 0.14em;
-  color: color-mix(in srgb, var(--brand-surface) 65%, var(--brand-accent-2));
+  letter-spacing: 0;
+  color: color-mix(in srgb, var(--brand-light) 66%, var(--brand-accent-2));
   margin: 0 0 1rem;
 }
 
 .landing-hero .brand-wordmark {
-  font-size: clamp(3rem, 9vw, 5.5rem);
+  font-size: 4.5rem;
   line-height: 0.95;
   margin: 0 0 1.25rem;
-  color: var(--brand-surface);
+  color: var(--brand-light);
 }
 
 .landing-lead {
-  font-size: clamp(1.05rem, 2.2vw, 1.25rem);
+  font-size: 1.2rem;
   line-height: 1.55;
-  color: color-mix(in srgb, var(--brand-surface) 78%, transparent);
+  color: color-mix(in srgb, var(--brand-light) 78%, transparent);
   margin: 0 0 2rem;
   max-width: 28rem;
 }
@@ -130,12 +144,12 @@ body {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 0.75rem 1.35rem;
-  border-radius: 999px;
+  padding: 0.75rem 1.15rem;
+  border-radius: var(--brand-radius);
   font-weight: 600;
   text-decoration: none;
   border: 1.5px solid transparent;
-  transition: transform 0.2s ease, background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+  transition: transform 180ms ease, background-color 180ms ease, color 180ms ease, border-color 180ms ease;
 }
 
 .btn-landing:hover {
@@ -144,71 +158,62 @@ body {
 
 .btn-landing-primary {
   background: var(--brand-accent);
-  color: #fff8f3;
+  color: #10202a;
 }
 
 .btn-landing-primary:hover {
-  background: color-mix(in srgb, var(--brand-accent) 85%, #000);
-  color: #fff;
+  background: color-mix(in srgb, var(--brand-accent) 86%, #fff);
+  color: #10202a;
 }
 
 .btn-landing-ghost {
   background: transparent;
-  color: var(--brand-surface);
-  border-color: color-mix(in srgb, var(--brand-surface) 45%, transparent);
+  color: var(--brand-light);
+  border-color: color-mix(in srgb, var(--brand-light) 38%, transparent);
 }
 
 .btn-landing-ghost:hover {
-  border-color: var(--brand-surface);
-  background: color-mix(in srgb, var(--brand-surface) 8%, transparent);
-  color: var(--brand-surface);
+  border-color: var(--brand-light);
+  background: color-mix(in srgb, var(--brand-light) 8%, transparent);
+  color: var(--brand-light);
 }
 
 .landing-foot {
   padding: 1.25rem clamp(1.25rem, 4vw, 3rem) 1.75rem;
   font-size: 0.85rem;
-  color: color-mix(in srgb, var(--brand-surface) 45%, transparent);
-}
-
-.landing-orb {
-  position: absolute;
-  width: min(52vw, 420px);
-  aspect-ratio: 1;
-  border-radius: 50%;
-  right: -6%;
-  top: 18%;
-  background:
-    radial-gradient(circle at 35% 35%, rgba(247, 244, 239, 0.18), transparent 55%),
-    radial-gradient(circle at 70% 70%, rgba(42, 111, 107, 0.5), transparent 60%),
-    rgba(196, 92, 38, 0.15);
-  filter: blur(2px);
-  animation: landing-drift 14s ease-in-out infinite alternate;
-  pointer-events: none;
-}
-
-.landing-orb-2 {
-  width: min(30vw, 220px);
-  left: 8%;
-  right: auto;
-  top: auto;
-  bottom: 12%;
-  opacity: 0.7;
-  animation-duration: 18s;
-  animation-direction: alternate-reverse;
-}
-
-@keyframes landing-drift {
-  from { transform: translate(0, 0) scale(1); }
-  to { transform: translate(-18px, 24px) scale(1.06); }
+  color: color-mix(in srgb, var(--brand-light) 55%, transparent);
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .landing-orb,
-  .landing-orb-2 {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
     animation: none;
+    transition-duration: 0.01ms !important;
   }
   .btn-landing:hover {
     transform: none;
+  }
+}
+
+@keyframes rise-in {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 600px) {
+  .landing-hero .brand-wordmark {
+    font-size: 3.2rem;
+  }
+
+  .landing-nav {
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .landing-nav-actions {
+    justify-content: flex-end;
   }
 }
 
@@ -220,18 +225,20 @@ body {
   justify-content: center;
   padding: 1.5rem;
   background:
-    radial-gradient(ellipse at top left, color-mix(in srgb, var(--brand-accent-2) 35%, transparent), transparent 55%),
-    radial-gradient(ellipse at bottom right, color-mix(in srgb, var(--brand-accent) 28%, transparent), transparent 50%),
-    var(--brand-bg);
+    radial-gradient(ellipse at top left, color-mix(in srgb, var(--brand-accent-2) 20%, transparent), transparent 52%),
+    radial-gradient(ellipse at bottom right, color-mix(in srgb, var(--brand-accent) 14%, transparent), transparent 48%),
+    linear-gradient(145deg, #192838, var(--brand-bg) 62%);
 }
 
 .auth-panel {
-  width: min(420px, 100%);
+  width: min(440px, 100%);
   background: var(--brand-surface);
   color: var(--brand-ink);
   border-radius: var(--brand-radius);
-  padding: 2rem 1.75rem;
-  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.28);
+  padding: 2.25rem 2rem;
+  border: 1px solid rgba(237, 243, 236, 0.09);
+  box-shadow: 0 24px 72px rgba(0, 0, 0, 0.34);
+  animation: rise-in 500ms cubic-bezier(0.2, 0.75, 0.25, 1) both;
 }
 
 .auth-panel .brand-wordmark {
@@ -251,13 +258,43 @@ body {
 }
 
 .auth-panel .btn-primary:hover {
-  background: color-mix(in srgb, var(--brand-accent) 85%, #000);
-  border-color: color-mix(in srgb, var(--brand-accent) 85%, #000);
+  background: color-mix(in srgb, var(--brand-accent) 86%, #fff);
+  border-color: color-mix(in srgb, var(--brand-accent) 86%, #fff);
+  color: #10202a;
 }
 
 .auth-panel .btn-outline-secondary {
   color: var(--brand-ink);
-  border-color: color-mix(in srgb, var(--brand-ink) 25%, transparent);
+  border-color: color-mix(in srgb, var(--brand-ink) 30%, transparent);
+}
+
+.auth-panel .btn-outline-secondary:hover {
+  color: var(--brand-light);
+  background: var(--brand-surface-raised);
+}
+
+.auth-panel .form-control {
+  min-height: 3rem;
+  color: var(--brand-ink);
+  background: #111922;
+  border-color: color-mix(in srgb, var(--brand-ink) 20%, transparent);
+  transition: border-color 160ms ease, box-shadow 160ms ease, background-color 160ms ease;
+}
+
+.auth-panel .form-control::placeholder {
+  color: var(--brand-muted);
+}
+
+.auth-panel .form-control:focus {
+  color: var(--brand-ink);
+  background: #111922;
+  border-color: var(--brand-accent-2);
+  box-shadow: 0 0 0 0.2rem color-mix(in srgb, var(--brand-accent-2) 22%, transparent);
+}
+
+.auth-panel .form-label {
+  color: var(--brand-ink);
+  font-weight: 600;
 }
 
 .auth-back {
@@ -270,4 +307,14 @@ body {
 
 .auth-back:hover {
   color: var(--brand-accent);
+}
+
+@media (max-width: 480px) {
+  .auth-shell {
+    padding: 1rem;
+  }
+
+  .auth-panel {
+    padding: 1.75rem 1.25rem;
+  }
 }
