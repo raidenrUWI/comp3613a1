@@ -1,38 +1,25 @@
-# COMP 3613 Assignment 1
+# COMP 3613 Assignment 2 — Student Awards
 
-Draft this file with the Guide. **Update it after every phase milestone** before you pause. The use-case diagram is a UML PNG at `docs/diagrams/use-case.png`, linked from this file as `diagrams/use-case.png` (path relative to `docs/report.md`). The model diagram is Mermaid. **Embed wireframe images** as `wireframes/<file>` (files live in `docs/wireframes/`).
+## Project description
 
-Do not put your student ID in this file if you will commit it. The PDF cover adds your name and ID at export time.
-
-## Assigned project
-Student Awards (incentive system)
-
-## Three workflows
-
-### 1. Browse and Apply for Volunteer Opportunities (Student)
-
-### 2. View Class and Overall Leaderboards (Student)
-
-### 3. Verify Student Hours (Admin)
+Student Awards is a volunteer-hours platform. Students browse and apply for volunteer opportunities, submit completed hours for verification, and track their progress on class and overall leaderboards. Administrators review opportunity applications and verify submitted hours.
 
 ## Use case diagram
 
-![Use case diagram](diagrams/use-case.png)
+![Student Awards use case diagram](diagrams/use-case.png)
 
-Revised use cases reflect the implemented workflows:
+## ERD
 
-- Students browse and apply for volunteer opportunities; assigned admins review opportunity applications.
-- Only accepted opportunity applications allow a student to request hours verification. Admins review hours requests and approved amounts update the student's total.
-- Students can view the overall leaderboard and their own class leaderboard. Admins can view all classes and search by student ID or name.
-- Students can view their profile and change their class. The student Progress roadmap shows verified hours, completed opportunities, and milestone progress.
-- Viewing verified hours and completed opportunity history is included in the Progress roadmap; searching extends the admin leaderboard view; changing class extends profile viewing.
-
-## Model diagram
-
-Revised to match the implemented SQLModel tables. FastStarter `User` accounts remain the authentication records; separate `Student` and `Admin` profiles reference them one-to-one. `OpportunityApplication` links students, chosen admins, and opportunities. `HoursApplication` records each requested hour amount, note, and review status.
+FastStarter `User` records provide authentication. Student and Admin profiles are linked one-to-one to those accounts. Opportunity applications connect students, administrators, and volunteer opportunities. Hours applications record the requested hours and review status for an accepted opportunity application. Leaderboards and milestone progress are derived from verified student data.
 
 ```mermaid
 erDiagram
+  USER {
+    int id PK
+    string username
+    string email
+    string role
+  }
   STUDENT {
     int studentID PK
     int userID FK
@@ -44,12 +31,6 @@ erDiagram
     int adminID PK
     int userID FK
     string name
-  }
-  USER {
-    int id PK
-    string username
-    string email
-    string role
   }
   VOLUNTEER_OPPORTUNITY {
     int opportunityID PK
@@ -78,78 +59,101 @@ erDiagram
   USER ||--o| STUDENT : has_profile
   USER ||--o| ADMIN : has_profile
   STUDENT ||--o{ OPPORTUNITY_APPLICATION : submits
-  ADMIN ||--o{ OPPORTUNITY_APPLICATION : receives
-  VOLUNTEER_OPPORTUNITY ||--o{ OPPORTUNITY_APPLICATION : has
+  ADMIN ||--o{ OPPORTUNITY_APPLICATION : reviews
+  VOLUNTEER_OPPORTUNITY ||--o{ OPPORTUNITY_APPLICATION : receives
   OPPORTUNITY_APPLICATION ||--o{ HOURS_APPLICATION : supports
 ```
 
-Leaderboards are query-derived views, not stored entities. Progress milestones are service-defined thresholds (8, 16, 24, and 32 verified hours), not separate database rows. Completed opportunity history is derived from accepted `HoursApplication` records.
+## Wireframe
 
-Phase 3 relationship and rule decisions:
+![Student Awards workflow wireframes](wireframes/wireframe.png)
 
-- A student can apply to many volunteer opportunities, and an opportunity can have applications from many students. `OpportunityApplication` is the linking entity and stores `studentID`, `adminID`, and `opportunityID`.
-- Student and Admin are separate domain profiles linked one-to-one to FastStarter `User` login accounts.
-- The student chooses the reviewing admin for each opportunity application. The same student and selected admin remain associated when hours are submitted for that opportunity application; `HoursApplication` stores the application reference, requested hour amount, note, and its own status.
-- Both application types use `pending`, `accepted`, and `rejected` statuses. Admins verify hours through `HoursApplication`.
-- An hours request can only be submitted for an accepted opportunity application. The student supplies a positive hour amount and a note.
-- An opportunity requires a name, image URL, and description for its browse card.
-- Leaderboard queries rank students by stored total hours. Students can only select the overall board or their own class; admins can select every class and search by exact student ID or partial name.
-- Progress uses the student's verified total and marks milestones at 8, 16, 24, and 32 hours. The completed-opportunity list aggregates accepted hours requests per opportunity.
-- Accepted opportunity applications consume capacity; pending applications do not. Admin approval is blocked when all places are taken. A student cannot submit while an application for that opportunity is pending, and cannot submit again after three denied applications for that opportunity.
+## Test plans
 
-## Wireframes
+### User acceptance tests
 
-The current student-crafted wireframe sheet covers the three planned workflows: browse and apply for opportunities, verify applications and hours as admin, and view/search leaderboards.
+**UAT-01 — Browse, apply, and request hours**
 
-![Student wireframe sheet](wireframes/wireframe.png)
+- **Actor and setup:** Student with available volunteer opportunities; an administrator can review the application.
+- **Steps:** Browse opportunities, open one, choose an administrator, and apply. After the application is accepted, submit a positive number of hours with a note.
+- **Expected result:** The application status is visible. An accepted application enables an hours request, which appears in the administrator review queue.
 
-`python manage.py report` also embeds any PNG/JPG still missing from `docs/wireframes/`.
+**UAT-02 — Review applications and verify hours**
 
-## Theming
+- **Actor and setup:** Administrator with a pending opportunity application and hours request in their queue.
+- **Steps:** Review the opportunity application, then approve a pending hours request.
+- **Expected result:** Each review updates its status. Approved hours increase the student's verified-hours total.
 
-Brand direction: dark theme, modern design, readable typography, and smooth transitions. The palette now uses a near-black base, charcoal surfaces, blue and cyan accents, Space Grotesk headings, and DM Sans body text. The wordmark is Student Awards, with an encouraging, concise tone. Blue replaced the original green accents after the first workflow review.
+**UAT-03 — View class and overall leaderboards**
 
-Applied to the landing, login, and registration pages, with matching dark styling in the authenticated shell. Motion respects the reduced-motion preference. The generic signed-in home pages remain temporary workflow entry points and will be replaced as the student and admin workflows are implemented; `/config` remains available.
+- **Actor and setup:** Student with a class profile and verified hours.
+- **Steps:** Open the leaderboard and switch between the overall view and the student's class view.
+- **Expected result:** Students are ordered by verified hours, and the signed-in student's row is highlighted.
 
-## Implementation notes
+**UAT-04 — Search and filter leaderboards as an administrator**
 
-### Browse and Apply for Volunteer Opportunities (Student)
+- **Actor and setup:** Administrator with seeded student data.
+- **Steps:** Open the leaderboard, search by student ID or name, select a class, and use the show-all view.
+- **Expected result:** Search and class filters return the matching students; show-all displays the available leaderboard rows.
 
-- Implemented opportunity cards with name, image URL, description, date range, capacity, and admin selection for applications.
-- Applications track pending, accepted, or rejected status. Hours requests require an accepted application and include a positive amount and note.
-- Seed data creates six opportunities and four student profiles across two classes. Every student starts at zero hours, and the database initializes with zero opportunity or hours applications.
-- The leaderboard has an Overall tab and a tab for each class; students are ranked by their stored total hours.
-- Student Progress roadmap uses the student's verified total hours and tracks Milestone 1 at 8 hours, Milestone 2 at 16, Milestone 3 at 24, and Milestone 4 at 32.
-- The student Profile is for identity and class selection; total verified hours, milestone progress, and completed opportunity/hour history are shown on Progress.
-- Student verification: the student reported that the first workflow looks good. Theme polish: changed the green/lime accents to blue/cyan at the student's request.
-- Code checks: student completed the SQLModel fields, repository browse query, and thin route call. The service delegation was skipped and implemented as an assumption. The route calls the service and returns the HTML template; persistence stays in repositories.
+### Unit test plan
 
-## Deployed app
+Unit tests isolate service logic and mock repositories where persistence is not under test.
 
-Phase 6. Public Render URL (not localhost). Markers open this to mark the three workflows.
+- **UT-01 — Progress roadmap:** At 12.5 verified hours, show the current total, next milestone, progress percentage, and hours remaining.
+- **UT-02 — Final milestone:** At 32 verified hours, show all milestones achieved, no next milestone, and zero hours remaining.
+- **UT-03 — Submit opportunity application:** A valid student, opportunity, and administrator create a pending application.
+- **UT-04 — Prevent duplicate active application:** A pending or accepted application prevents another active application.
+- **UT-05 — Validate hours request:** A zero or negative amount is rejected without creating a request.
+- **UT-06 — Enforce opportunity capacity:** Approval is rejected when accepted applications have filled the opportunity.
 
-https://
+### Integration test plan
 
-## Logins
+Integration tests use an isolated in-memory SQLite database.
 
-Every account a marker needs, including extra users you added. Demo accounts:
+- **IT-01 — Health check:** `GET /health` returns HTTP 200 and `{"ok": true}`.
+- **IT-02 — User-list API:** `GET /api/users` returns public user fields only; password and role fields are excluded.
+- **IT-03 — Ranked leaderboard:** Overall and class filters return rows in descending verified-hours order and support name/ID search.
+- **IT-04 — Student class access:** A student cannot request another class's leaderboard.
+- **IT-05 — Student profile:** Updating a student's class is reflected in the profile and participation records.
+- **IT-06 — Admin application queue:** Pending applications are scoped to the assigned administrator.
 
-- bob / bobpass — regular user, Class 1
-- alice / alicepass — regular user, Class 1
-- chris / chrispass — regular user, Class 2
-- dana / danapass — regular user, Class 2
-- admin / adminpass — admin
+## Implementation
 
-## YouTube URL
+**Repository:** [raidenrUWI/comp3613a1](https://github.com/raidenrUWI/comp3613a1)
 
-## Session transcripts
+**Unit tests**
 
-Filled when the Guide builds the report: the agent writes each Guide chat to `docs/transcripts/<slug>.md` (Copilot Agent, Cursor, or OpenCode). `python manage.py report` packages them. Do not paste chats here during the build.
+- Service tests: [tests/test_student_progress_service.py](https://github.com/raidenrUWI/comp3613a1/blob/main/tests/test_student_progress_service.py) and [tests/test_opportunity_service.py](https://github.com/raidenrUWI/comp3613a1/blob/main/tests/test_opportunity_service.py).
+- Run with `python -m pytest -q tests/test_student_progress_service.py tests/test_opportunity_service.py`.
 
-## Competency (student-judge)
+**Integration tests**
 
-Filled when the report is built. Guide runs student-judge, writes `docs/judge.md`, and export appends the scorecard here.
+- API and repository tests: [tests/test_api_integration.py](https://github.com/raidenrUWI/comp3613a1/blob/main/tests/test_api_integration.py), [tests/test_student_repository.py](https://github.com/raidenrUWI/comp3613a1/blob/main/tests/test_student_repository.py), and [tests/test_opportunity_application_repository.py](https://github.com/raidenrUWI/comp3613a1/blob/main/tests/test_opportunity_application_repository.py).
+- Run with `python -m pytest -q tests/test_api_integration.py tests/test_student_repository.py tests/test_opportunity_application_repository.py`.
 
-## Skill integrity
+**API tests (Postman)**
 
-Filled by `python manage.py report`. Do not edit the course skills.
+- Collection: [postman/StudentAwards.postman_collection.json](https://github.com/raidenrUWI/comp3613a1/blob/main/postman/StudentAwards.postman_collection.json).
+- The collection tests `GET /health` and `GET /api/users`; its assertions check successful responses and the public user response shape.
+- Exported run: [docs/testing/reports/postman-run.json](https://github.com/raidenrUWI/comp3613a1/blob/main/docs/testing/reports/postman-run.json).
+
+## Reports
+
+### Unit test report
+
+**Result:** 7 passed, 0 failed.
+
+![Unit test report screenshot](testing/reports/unit-tests-report.png)
+
+### Integration test report
+
+**Result:** 6 passed, 0 failed.
+
+![Integration test report screenshot](testing/reports/integration-tests-report.png)
+
+### Postman collection run
+
+**Result:** 2 requests, 4 assertions passed, 0 failed.
+
+![Postman collection run screenshot](testing/reports/postman-collection-report.png)

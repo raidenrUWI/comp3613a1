@@ -113,6 +113,8 @@ class ReportHTML2FPDF(HTML2FPDF):
 class ReportPDF(FPDF):
     HTML2FPDF_CLASS = ReportHTML2FPDF
     incomplete = False
+    assignment_title = "COMP 3613 Assignment 1"
+    document_subtitle = "Individual report"
 
     def header(self) -> None:
         if self.page_no() == 1:
@@ -123,10 +125,14 @@ class ReportPDF(FPDF):
             self.set_text_color(255, 255, 255)
             self.set_font("Body", "B", 20)
             self.set_xy(self.l_margin, 9)
-            self.cell(self.epw, 10, "COMP 3613 Assignment 1")
+            self.cell(self.epw, 10, self.assignment_title)
             self.set_font("Body", "", 11)
             self.set_xy(self.l_margin, 20)
-            subtitle = "Individual report (incomplete)" if self.incomplete else "Individual report"
+            subtitle = (
+                "Individual report (incomplete)"
+                if self.incomplete
+                else self.document_subtitle
+            )
             self.cell(self.epw, 8, subtitle)
             self.set_text_color(0, 0, 0)
             self.set_y(48)
@@ -135,7 +141,7 @@ class ReportPDF(FPDF):
         self.set_y(10)
         self.set_font("Body", "", 9)
         self.set_text_color(*NAVY)
-        self.cell(self.epw, 6, "COMP 3613 Assignment 1", new_x="LMARGIN", new_y="NEXT")
+        self.cell(self.epw, 6, self.assignment_title, new_x="LMARGIN", new_y="NEXT")
         self.ln(1.5)
         self.set_draw_color(*GOLD)
         self.set_line_width(0.5)
@@ -171,8 +177,9 @@ def export_report(
     student_id: str,
     source: Path | None = None,
     output: Path | None = None,
+    submission_only: bool = False,
 ) -> ReportExportResult:
-    """Merge judge, dump transcripts, write PDF. Returns paths and status."""
+    """Export a standard report or a focused submission-only PDF."""
     src = source or DEFAULT_REPORT
     dest = output or DEFAULT_PDF
     clean_name = name.strip()
@@ -191,58 +198,72 @@ def export_report(
 
     integrity = require_clean()
 
-    # 1) Judge - Guide writes docs/judge.md via student-judge before this command.
-    judge_path = DEFAULT_JUDGE
-    judge_merged = judge_path.is_file() and bool(judge_path.read_text(encoding="utf-8").strip())
-    if judge_merged:
-        print(f"  [1/3] Judge: merged {judge_path.as_posix()}")
+    if submission_only:
+        markdown = src.read_text(encoding="utf-8")
+        judge_merged = False
+        transcripts = None
+        missing: list[str] = []
+        app_url = logins = ""
     else:
-        print(
-            "  [1/3] Judge: MISSING - Guide must run student-judge and write "
-            f"{judge_path.as_posix()} before a complete export."
-        )
+        # 1) Judge - Guide writes docs/judge.md via student-judge before this command.
+        judge_path = DEFAULT_JUDGE
+        judge_merged = judge_path.is_file() and bool(judge_path.read_text(encoding="utf-8").strip())
+        if judge_merged:
+            print(f"  [1/3] Judge: merged {judge_path.as_posix()}")
+        else:
+            print(
+                "  [1/3] Judge: MISSING - Guide must run student-judge and write "
+                f"{judge_path.as_posix()} before a complete export."
+            )
 
-    # 2) Transcripts - Guide agent must already have written docs/transcripts/*.md
-    transcripts = export_project_transcripts()
-    print(
-        f"  [2/3] Transcripts: {transcripts.found} chat(s) packaged from "
-        f"{transcripts.out_dir.as_posix()}"
-        + (f" (+ {transcripts.zip_path.name})" if transcripts.zip_path else "")
-    )
-    if transcripts.found == 0:
+        # 2) Transcripts - Guide agent must already have written docs/transcripts/*.md
+        transcripts = export_project_transcripts()
         print(
-            "  Warning: docs/transcripts/ has no chat markdown. "
-            "Guide must pull every Guide chat (Copilot/Cursor/OpenCode) into "
-            "docs/transcripts/<slug>.md before a complete export."
+            f"  [2/3] Transcripts: {transcripts.found} chat(s) packaged from "
+            f"{transcripts.out_dir.as_posix()}"
+            + (f" (+ {transcripts.zip_path.name})" if transcripts.zip_path else "")
         )
+        if transcripts.found == 0:
+            print(
+                "  Warning: docs/transcripts/ has no chat markdown. "
+                "Guide must pull every Guide chat (Copilot/Cursor/OpenCode) into "
+                "docs/transcripts/<slug>.md before a complete export."
+            )
 
-    markdown = merge_judge_section(src.read_text(encoding="utf-8"))
-    markdown = ensure_usecase_in_report(markdown, report_path=src)
-    markdown = ensure_wireframes_in_report(markdown, report_path=src)
-    markdown = merge_transcripts_section(markdown, transcripts)
-    markdown = stamp_markdown(markdown, integrity)
-    src.write_text(markdown, encoding="utf-8")
-    if COMPETENCY_HEADING not in markdown:
-        print(
-            "No judge scorecard in the report yet. Ask the Guide to build the report "
-            "(runs student-judge -> docs/judge.md), then re-run this command."
-        )
-    app_url, logins, missing = _marker_access(markdown)
+        markdown = merge_judge_section(src.read_text(encoding="utf-8"))
+        markdown = ensure_usecase_in_report(markdown, report_path=src)
+        markdown = ensure_wireframes_in_report(markdown, report_path=src)
+        markdown = merge_transcripts_section(markdown, transcripts)
+        markdown = stamp_markdown(markdown, integrity)
+        src.write_text(markdown, encoding="utf-8")
+        if COMPETENCY_HEADING not in markdown:
+            print(
+                "No judge scorecard in the report yet. Ask the Guide to build the report "
+                "(runs student-judge -> docs/judge.md), then re-run this command."
+            )
+        app_url, logins, missing = _marker_access(markdown)
     dest.parent.mkdir(parents=True, exist_ok=True)
 
     pdf = _new_pdf(bool(missing))
+    if submission_only:
+        pdf.assignment_title = "COMP 3613 Assignment 2"
+        pdf.document_subtitle = "Submission deliverables"
     with tempfile.TemporaryDirectory(ignore_cleanup_errors=True) as tmp:
-        cover = _cover_html(clean_name, clean_id, app_url, logins, integrity, missing)
+        if submission_only:
+            cover = _submission_cover_html(clean_name, clean_id)
+        else:
+            cover = _cover_html(clean_name, clean_id, app_url, logins, integrity, missing)
         body = _markdown_to_html(markdown, src.parent, Path(tmp))
-        appendix = _markdown_to_html(
-            appendix_markdown(transcripts),
-            src.parent,
-            Path(tmp),
-        )
         _write_report_html(pdf, cover + body)
-        if appendix.strip():
-            pdf.add_page()
-            _write_report_html(pdf, appendix)
+        if transcripts is not None:
+            appendix = _markdown_to_html(
+                appendix_markdown(transcripts),
+                src.parent,
+                Path(tmp),
+            )
+            if appendix.strip():
+                pdf.add_page()
+                _write_report_html(pdf, appendix)
     pdf.output(dest)
     print(f"  [3/3] PDF: {dest.as_posix()}")
     if missing:
@@ -251,8 +272,8 @@ def export_report(
     return ReportExportResult(
         pdf_path=dest,
         judge_merged=judge_merged and COMPETENCY_HEADING in markdown,
-        transcript_count=transcripts.found,
-        transcript_zip=transcripts.zip_path,
+        transcript_count=transcripts.found if transcripts is not None else 0,
+        transcript_zip=transcripts.zip_path if transcripts is not None else None,
     )
 
 
@@ -631,6 +652,22 @@ def _cover_html(
 {missing_note}
 <p><font size="2" color="#5A6070">The YouTube video must show this name and must not show or say this ID. App logins belong in this report. Database passwords do not.</font></p>
 """
+
+
+def _submission_cover_html(name: str, student_id: str) -> str:
+    rows = (
+        ("Student name", html_lib.escape(name)),
+        ("Student ID", html_lib.escape(student_id)),
+    )
+    cells = "".join(
+        f'<tr bgcolor="{ZEBRA}"><td align="left">{label}</td>'
+        f'<td align="left">{value}</td></tr>'
+        for label, value in rows
+    )
+    return (
+        '<table width="100%" border="1" cellpadding="5">'
+        f'<tbody>{cells}</tbody></table>'
+    )
 
 
 def _section(markdown: str, *titles: str) -> str:

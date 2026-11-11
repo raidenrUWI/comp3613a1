@@ -1,0 +1,87 @@
+{
+  "info": {
+    "_postman_id": "7ef7c9a1-f23d-4c36-a778-5f29a85e3b62",
+    "name": "Student Awards API Tests",
+    "description": "Smoke tests for the health check and user-list API. Start the app with `python manage.py run`; change the baseUrl collection variable to target another environment.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Health check",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/health",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "health"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('returns HTTP 200', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "pm.test('reports the service as healthy', function () {",
+              "    pm.expect(pm.response.json()).to.eql({ ok: true });",
+              "});"
+            ]
+          }
+        }
+      ],
+      "response": []
+    },
+    {
+      "name": "List users",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/users",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "users"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('returns HTTP 200 and a JSON array', function () {",
+              "    pm.response.to.have.status(200);",
+              "    pm.expect(pm.response.json()).to.be.an('array');",
+              "});",
+              "pm.test('each user exposes only the public response fields', function () {",
+              "    pm.response.json().forEach(function (user) {",
+              "        pm.expect(user).to.have.all.keys('id', 'username', 'email');",
+              "    });",
+              "});"
+            ]
+          }
+        }
+      ],
+      "response": []
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://127.0.0.1:5000",
+      "type": "string"
+    }
+  ]
+}

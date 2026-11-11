@@ -202,10 +202,10 @@ def cmd_run(args: argparse.Namespace) -> None:
 
 
 def cmd_report(args: argparse.Namespace) -> None:
-    """Build the submission package: merge judge, package transcripts, write PDF.
+    """Build a report PDF, optionally limiting it to submission deliverables.
 
-    Guide must (1) write ``docs/judge.md`` and (2) pull every Guide chat into
-    ``docs/transcripts/*.md`` before this command. Report only packages those files.
+    Standard exports package the judge and Guide chats. Submission-only exports
+    contain only the supplied Markdown report.
     """
     from app.report_pdf import export_report
     from app.skill_integrity import format_report, verify
@@ -215,22 +215,24 @@ def cmd_report(args: argparse.Namespace) -> None:
         student_id=args.student_id,
         source=None if args.src is None else Path(args.src),
         output=None if args.output is None else Path(args.output),
+        submission_only=args.submission_only,
     )
     print()
     print("Report package:")
-    print(
-        f"  Judge:       {'merged docs/judge.md' if result.judge_merged else 'MISSING - Guide must run student-judge first'}"
-    )
-    print(
-        f"  Transcripts: {result.transcript_count} chat(s) in docs/transcripts/"
-        + (
-            ""
-            if result.transcript_count
-            else " (EMPTY - Guide must pull Copilot/Cursor/OpenCode chats first)"
+    if not args.submission_only:
+        print(
+            f"  Judge:       {'merged docs/judge.md' if result.judge_merged else 'MISSING - Guide must run student-judge first'}"
         )
-    )
-    if result.transcript_zip:
-        print(f"  Zip:         {result.transcript_zip.as_posix()}")
+        print(
+            f"  Transcripts: {result.transcript_count} chat(s) in docs/transcripts/"
+            + (
+                ""
+                if result.transcript_count
+                else " (EMPTY - Guide must pull Copilot/Cursor/OpenCode chats first)"
+            )
+        )
+        if result.transcript_zip:
+            print(f"  Zip:         {result.transcript_zip.as_posix()}")
     print(f"  PDF:         {result.pdf_path.as_posix()}")
     print(format_report(verify()))
 
@@ -358,6 +360,11 @@ def build_parser() -> argparse.ArgumentParser:
     p_report.add_argument("--id", dest="student_id", required=True, help="Student ID (PDF only)")
     p_report.add_argument("--src", default=None, help="Markdown path (default: docs/report.md)")
     p_report.add_argument("--output", default=None, help="PDF path (default: docs/report.pdf)")
+    p_report.add_argument(
+        "--submission-only",
+        action="store_true",
+        help="Export only the report contents, without judge or transcript appendices",
+    )
     p_report.set_defaults(func=cmd_report)
 
     p_transcripts = sub.add_parser(

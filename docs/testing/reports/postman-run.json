@@ -1,0 +1,496 @@
+{
+  "collection": {
+    "_": {
+      "postman_id": "7ef7c9a1-f23d-4c36-a778-5f29a85e3b62"
+    },
+    "item": [
+      {
+        "id": "98aa9b97-5f2f-48b1-8e52-1f63d863ec02",
+        "name": "Health check",
+        "request": {
+          "url": {
+            "path": [
+              "health"
+            ],
+            "host": [
+              "{{baseUrl}}"
+            ],
+            "query": [],
+            "variable": []
+          },
+          "method": "GET"
+        },
+        "response": [],
+        "event": [
+          {
+            "listen": "test",
+            "script": {
+              "id": "edb4cc49-9940-449a-8420-3b30584db3f4",
+              "type": "text/javascript",
+              "exec": [
+                "pm.test('returns HTTP 200', function () {",
+                "    pm.response.to.have.status(200);",
+                "});",
+                "pm.test('reports the service as healthy', function () {",
+                "    pm.expect(pm.response.json()).to.eql({ ok: true });",
+                "});"
+              ],
+              "_lastExecutionId": "95686eb2-8365-4932-a412-f6643453e6f8"
+            }
+          }
+        ]
+      },
+      {
+        "id": "385f4268-d460-4051-b97c-601783b023ab",
+        "name": "List users",
+        "request": {
+          "url": {
+            "path": [
+              "api",
+              "users"
+            ],
+            "host": [
+              "{{baseUrl}}"
+            ],
+            "query": [],
+            "variable": []
+          },
+          "method": "GET"
+        },
+        "response": [],
+        "event": [
+          {
+            "listen": "test",
+            "script": {
+              "id": "6b5d43c8-4e46-4baf-a259-797ed28aa3ca",
+              "type": "text/javascript",
+              "exec": [
+                "pm.test('returns HTTP 200 and a JSON array', function () {",
+                "    pm.response.to.have.status(200);",
+                "    pm.expect(pm.response.json()).to.be.an('array');",
+                "});",
+                "pm.test('each user exposes only the public response fields', function () {",
+                "    pm.response.json().forEach(function (user) {",
+                "        pm.expect(user).to.have.all.keys('id', 'username', 'email');",
+                "    });",
+                "});"
+              ],
+              "_lastExecutionId": "c7af75e5-25e7-4b4d-ab89-b854f65f2999"
+            }
+          }
+        ]
+      }
+    ],
+    "event": [],
+    "variable": [
+      {
+        "type": "string",
+        "value": "http://127.0.0.1:5000",
+        "key": "baseUrl"
+      }
+    ],
+    "info": {
+      "_postman_id": "7ef7c9a1-f23d-4c36-a778-5f29a85e3b62",
+      "name": "Student Awards API Tests",
+      "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+      "description": {
+        "content": "Smoke tests for the health check and user-list API. Start the app with `python manage.py run`; change the baseUrl collection variable to target another environment.",
+        "type": "text/plain"
+      }
+    }
+  },
+  "environment": {
+    "id": "518ba309-142e-4da0-a1e9-a20ef8a42785",
+    "values": [
+      {
+        "type": "any",
+        "value": "http://127.0.0.1:5099",
+        "key": "baseUrl"
+      }
+    ]
+  },
+  "globals": {
+    "id": "aa350e96-e178-4fed-aa81-f162d0c1761c",
+    "values": []
+  },
+  "run": {
+    "stats": {
+      "iterations": {
+        "total": 1,
+        "pending": 0,
+        "failed": 0
+      },
+      "items": {
+        "total": 2,
+        "pending": 0,
+        "failed": 0
+      },
+      "scripts": {
+        "total": 2,
+        "pending": 0,
+        "failed": 0
+      },
+      "prerequests": {
+        "total": 2,
+        "pending": 0,
+        "failed": 0
+      },
+      "requests": {
+        "total": 2,
+        "pending": 0,
+        "failed": 0
+      },
+      "tests": {
+        "total": 2,
+        "pending": 0,
+        "failed": 0
+      },
+      "assertions": {
+        "total": 4,
+        "pending": 0,
+        "failed": 0
+      },
+      "testScripts": {
+        "total": 2,
+        "pending": 0,
+        "failed": 0
+      },
+      "prerequestScripts": {
+        "total": 0,
+        "pending": 0,
+        "failed": 0
+      }
+    },
+    "timings": {
+      "responseAverage": 41.5,
+      "responseMin": 22,
+      "responseMax": 61,
+      "responseSd": 19.5,
+      "dnsAverage": 0,
+      "dnsMin": 0,
+      "dnsMax": 0,
+      "dnsSd": 0,
+      "firstByteAverage": 0,
+      "firstByteMin": 0,
+      "firstByteMax": 0,
+      "firstByteSd": 0,
+      "started": 1794099176722,
+      "completed": 1794099177027
+    },
+    "executions": [
+      {
+        "cursor": {
+          "position": 0,
+          "iteration": 0,
+          "length": 2,
+          "cycles": 1,
+          "empty": false,
+          "eof": false,
+          "bof": true,
+          "cr": false,
+          "ref": "6ac9df88-1134-45a1-878e-5fba57072a19",
+          "httpRequestId": "989245a4-a58c-43fa-84f2-b16abf972ad0"
+        },
+        "item": {
+          "id": "98aa9b97-5f2f-48b1-8e52-1f63d863ec02",
+          "name": "Health check",
+          "request": {
+            "url": {
+              "path": [
+                "health"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "method": "GET"
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "id": "edb4cc49-9940-449a-8420-3b30584db3f4",
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('returns HTTP 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('reports the service as healthy', function () {",
+                  "    pm.expect(pm.response.json()).to.eql({ ok: true });",
+                  "});"
+                ],
+                "_lastExecutionId": "95686eb2-8365-4932-a412-f6643453e6f8"
+              }
+            }
+          ]
+        },
+        "request": {
+          "url": {
+            "protocol": "http",
+            "port": "5099",
+            "path": [
+              "health"
+            ],
+            "host": [
+              "127",
+              "0",
+              "0",
+              "1"
+            ],
+            "query": [],
+            "variable": []
+          },
+          "header": [
+            {
+              "key": "User-Agent",
+              "value": "PostmanRuntime/7.39.1",
+              "system": true
+            },
+            {
+              "key": "Accept",
+              "value": "*/*",
+              "system": true
+            },
+            {
+              "key": "Cache-Control",
+              "value": "no-cache",
+              "system": true
+            },
+            {
+              "key": "Postman-Token",
+              "value": "2bb5ecea-016a-4e3e-ac0a-c62e0a101c96",
+              "system": true
+            },
+            {
+              "key": "Host",
+              "value": "127.0.0.1:5099",
+              "system": true
+            },
+            {
+              "key": "Accept-Encoding",
+              "value": "gzip, deflate, br",
+              "system": true
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive",
+              "system": true
+            }
+          ],
+          "method": "GET"
+        },
+        "response": {
+          "id": "289df19d-9a3e-4abd-94ce-a973756bbae0",
+          "status": "OK",
+          "code": 200,
+          "header": [
+            {
+              "key": "date",
+              "value": "Sun, 08 Nov 2026 00:52:56 GMT"
+            },
+            {
+              "key": "server",
+              "value": "uvicorn"
+            },
+            {
+              "key": "content-length",
+              "value": "11"
+            },
+            {
+              "key": "content-type",
+              "value": "application/json"
+            }
+          ],
+          "stream": {
+            "type": "Buffer",
+            "data": [
+              123,
+              34,
+              111,
+              107,
+              34,
+              58,
+              116,
+              114,
+              117,
+              101,
+              125
+            ]
+          },
+          "cookie": [],
+          "responseTime": 61,
+          "responseSize": 11
+        },
+        "id": "98aa9b97-5f2f-48b1-8e52-1f63d863ec02",
+        "assertions": [
+          {
+            "assertion": "returns HTTP 200",
+            "skipped": false
+          },
+          {
+            "assertion": "reports the service as healthy",
+            "skipped": false
+          }
+        ]
+      },
+      {
+        "cursor": {
+          "ref": "fda8ac89-3745-45e9-93cb-ab5232f460d1",
+          "length": 2,
+          "cycles": 1,
+          "position": 1,
+          "iteration": 0,
+          "httpRequestId": "a94a9797-1e19-4f77-8025-f7f9a9e51a47"
+        },
+        "item": {
+          "id": "385f4268-d460-4051-b97c-601783b023ab",
+          "name": "List users",
+          "request": {
+            "url": {
+              "path": [
+                "api",
+                "users"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "method": "GET"
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "id": "6b5d43c8-4e46-4baf-a259-797ed28aa3ca",
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('returns HTTP 200 and a JSON array', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "    pm.expect(pm.response.json()).to.be.an('array');",
+                  "});",
+                  "pm.test('each user exposes only the public response fields', function () {",
+                  "    pm.response.json().forEach(function (user) {",
+                  "        pm.expect(user).to.have.all.keys('id', 'username', 'email');",
+                  "    });",
+                  "});"
+                ],
+                "_lastExecutionId": "c7af75e5-25e7-4b4d-ab89-b854f65f2999"
+              }
+            }
+          ]
+        },
+        "request": {
+          "url": {
+            "protocol": "http",
+            "port": "5099",
+            "path": [
+              "api",
+              "users"
+            ],
+            "host": [
+              "127",
+              "0",
+              "0",
+              "1"
+            ],
+            "query": [],
+            "variable": []
+          },
+          "header": [
+            {
+              "key": "User-Agent",
+              "value": "PostmanRuntime/7.39.1",
+              "system": true
+            },
+            {
+              "key": "Accept",
+              "value": "*/*",
+              "system": true
+            },
+            {
+              "key": "Cache-Control",
+              "value": "no-cache",
+              "system": true
+            },
+            {
+              "key": "Postman-Token",
+              "value": "3f391989-7c24-4df2-99fe-30823f49ca49",
+              "system": true
+            },
+            {
+              "key": "Host",
+              "value": "127.0.0.1:5099",
+              "system": true
+            },
+            {
+              "key": "Accept-Encoding",
+              "value": "gzip, deflate, br",
+              "system": true
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive",
+              "system": true
+            }
+          ],
+          "method": "GET"
+        },
+        "response": {
+          "id": "5e731324-be17-4790-baf3-2170fc92ded7",
+          "status": "OK",
+          "code": 200,
+          "header": [
+            {
+              "key": "date",
+              "value": "Sun, 08 Nov 2026 00:52:56 GMT"
+            },
+            {
+              "key": "server",
+              "value": "uvicorn"
+            },
+            {
+              "key": "content-length",
+              "value": "2"
+            },
+            {
+              "key": "content-type",
+              "value": "application/json"
+            }
+          ],
+          "stream": {
+            "type": "Buffer",
+            "data": [
+              91,
+              93
+            ]
+          },
+          "cookie": [],
+          "responseTime": 22,
+          "responseSize": 2
+        },
+        "id": "385f4268-d460-4051-b97c-601783b023ab",
+        "assertions": [
+          {
+            "assertion": "returns HTTP 200 and a JSON array",
+            "skipped": false
+          },
+          {
+            "assertion": "each user exposes only the public response fields",
+            "skipped": false
+          }
+        ]
+      }
+    ],
+    "transfers": {
+      "responseTotal": 13
+    },
+    "failures": [],
+    "error": null
+  }
+}
